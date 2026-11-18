@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<title>Metro Online · загрузка</title>
+<link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+	* { margin: 0; padding: 0; -webkit-box-sizing: border-box; box-sizing: border-box; }
+	html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0a08; color: #e0d6c2; font-family: "Exo 2", "Segoe UI", Tahoma, sans-serif; }
+
+	#bg { position: fixed; left: -2%; top: -2%; width: 104%; height: 104%; background: #0b0a08 url(bg.jpg) center center no-repeat; background-size: cover; -webkit-filter: brightness(0.6) contrast(1.05); filter: brightness(0.6) contrast(1.05); -webkit-animation: drift 40s ease-in-out infinite alternate; animation: drift 40s ease-in-out infinite alternate; }
+	@-webkit-keyframes drift { from { -webkit-transform: scale(1.0); } to { -webkit-transform: scale(1.05) translate(-12px, -8px); } }
+	@keyframes drift { from { transform: scale(1.0); } to { transform: scale(1.05) translate(-12px, -8px); } }
+	#tint { position: fixed; left: 0; top: 0; width: 100%; height: 100%;
+		background: -webkit-linear-gradient(left, rgba(11,10,8,.5), rgba(11,10,8,0) 40%, rgba(11,10,8,0) 62%, rgba(11,10,8,.4)), -webkit-linear-gradient(top, rgba(11,10,8,.75), rgba(11,10,8,0) 30%, rgba(11,10,8,0) 50%, rgba(11,10,8,.94) 82%), rgba(11,10,8,.3);
+		background: linear-gradient(90deg, rgba(11,10,8,.5), rgba(11,10,8,0) 40%, rgba(11,10,8,0) 62%, rgba(11,10,8,.4)), linear-gradient(rgba(11,10,8,.75), rgba(11,10,8,0) 30%, rgba(11,10,8,0) 50%, rgba(11,10,8,.94) 82%), rgba(11,10,8,.3); }
+	#snow { position: fixed; left: 0; top: 0; }
+
+	#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; margin: -540px 0 0 -960px; -webkit-transform-origin: 50% 50%; transform-origin: 50% 50%; }
+
+	.kick { font-size: 15px; font-weight: 600; letter-spacing: .32em; color: #d39a3c; }
+	.title { position: absolute; left: 96px; top: 84px; }
+	.title h1 { font-size: 76px; font-weight: 700; letter-spacing: .14em; line-height: 1; margin-top: 6px; }
+	#lore { position: absolute; left: 96px; top: 230px; width: 760px; font-size: 20px; font-style: italic; color: #cfc4ae; line-height: 1.5; -webkit-transition: opacity .8s; transition: opacity .8s; }
+
+	.plate { position: absolute; background: rgba(18,16,12,.82); border: 1px solid rgba(224,214,194,.12); }
+	.sec { font-size: 14px; font-weight: 600; letter-spacing: .2em; color: #d39a3c; margin-bottom: 14px; overflow: hidden; }
+	.sec em { float: right; font-style: normal; font-weight: 400; font-size: 13px; letter-spacing: .04em; color: #9a8f7c; padding-top: 1px; }
+
+
+	#steps { position: absolute; left: 96px; top: 520px; width: 600px; border-bottom: 1px solid rgba(224,214,194,.14); }
+	.step { position: relative; height: 56px; line-height: 56px; border-top: 1px solid rgba(224,214,194,.14); color: #9a8f7c; font-size: 19px; padding-left: 40px; }
+	.step svg { position: absolute; left: 0; top: 16px; width: 24px; height: 24px; }
+	.step i { position: absolute; right: 0; top: 0; font-style: normal; font-size: 15px; letter-spacing: .06em; }
+	.step.done { color: #cfc4ae; }
+	.step.done i { color: #8fae6b; }
+	.step.cur, .step.cur i { color: #e8b562; }
+	.step.cur svg { color: #d39a3c; }
+	#file { position: absolute; left: 96px; top: 820px; width: 900px; font-size: 15px; color: #9a8f7c; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+	#tip { right: 96px; bottom: 176px; width: 640px; padding: 22px 26px 24px; }
+	#tip .sec svg { width: 20px; height: 20px; vertical-align: -4px; margin-right: 10px; }
+	#tipText { font-size: 21px; line-height: 1.5; min-height: 63px; -webkit-transition: opacity .5s; transition: opacity .5s; }
+
+	#bottom { position: absolute; left: 96px; right: 96px; bottom: 76px; }
+	.row { overflow: hidden; margin-bottom: 14px; }
+	#status { float: left; font-size: 22px; font-weight: 600; letter-spacing: .04em; padding-top: 16px; }
+	.pct { float: right; font-size: 44px; font-weight: 600; line-height: 1; color: #e8b562; }
+	.pct small { font-size: 22px; color: #9a8f7c; margin-left: 4px; }
+	.bar { height: 4px; background: rgba(224,214,194,.12); position: relative; }
+	#fill { position: absolute; left: 0; top: 0; height: 4px; width: 0; background: #d39a3c; -webkit-box-shadow: 0 0 14px rgba(211,154,60,.6); box-shadow: 0 0 14px rgba(211,154,60,.6); -webkit-transition: width .35s ease; transition: width .35s ease; }
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<div id="tint"></div>
+<canvas id="snow"></canvas>
+
+<div id="stage">
+	<div class="title">
+		<div class="kick" id="kick">METRO ONLINE</div>
+		<h1 id="title">МЕТРО 2033</h1>
+	</div>
+	<div id="lore"></div>
+
+
+	<div id="steps">
+		<div class="step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 12l5 5l-1.5 1.5a3.536 3.536 0 1 1 -5 -5l1.5 -1.5z"/><path d="M17 12l-5 -5l1.5 -1.5a3.536 3.536 0 1 1 5 5l-1.5 1.5z"/><path d="M3 21l2.5 -2.5"/><path d="M18.5 5.5l2.5 -2.5"/><path d="M10 11l-2 2"/><path d="M13 14l-2 2"/></svg>Связь с сервером<i>ожидание</i></div>
+		<div class="step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 18a3.5 3.5 0 0 0 0 -7h-1a5 4.5 0 0 0 -11 -2a4.6 4.4 0 0 0 -2.1 8.4"/><path d="M12 13l0 9"/><path d="M9 19l3 3l3 -3"/></svg>Контент Workshop<i>ожидание</i></div>
+		<div class="step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M12 17v-6"/><path d="M9.5 14.5l2.5 2.5l2.5 -2.5"/></svg>Файлы сервера<i>ожидание</i></div>
+		<div class="step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 8l-4 4l4 4"/><path d="M17 8l4 4l-4 4"/><path d="M14 4l-4 16"/></svg>Скрипты<i>ожидание</i></div>
+		<div class="step"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 18.5l-3 -1.5l-6 3v-13l6 -3l6 3l6 -3v7.5"/><path d="M9 4v13"/><path d="M15 7v5.5"/><path d="M21.121 20.121a3 3 0 1 0 -4.242 0c.418 .419 1.125 1.045 2.121 1.879c1.051 -.89 1.759 -1.516 2.121 -1.879z"/><path d="M19 18v.01"/></svg>Карта и ресурсы<i>ожидание</i></div>
+	</div>
+	<div id="file">&nbsp;</div>
+
+	<div class="plate" id="tip">
+		<div class="sec"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h1m8 -9v1m8 8h1m-15.4 -6.4l.7 .7m12.1 -.7l-.7 .7"/><path d="M9 16a5 5 0 1 1 6 0a3.5 3.5 0 0 0 -1 3a2 2 0 0 1 -4 0a3.5 3.5 0 0 0 -1 -3"/><path d="M9.7 17l4.6 0"/></svg>СОВЕТ<em id="tipNum"></em></div>
+		<div id="tipText"></div>
+	</div>
+
+	<div id="bottom">
+		<div class="row"><div id="status">Подключение...</div><div class="pct"><span id="pct">0</span><small>%</small></div></div>
+		<div class="bar"><div id="fill"></div></div>
+	</div>
+</div>
+
+<script>
+/* ======================= НАСТРОЙКИ ======================= */
+var CONFIG = {
+	kicker: "METRO ONLINE",
+	title: "МЕТРО 2033",
+	useServerName: false,      // true: заголовок = название сервера из игры (hostname)
+
+	tipInterval: 8,            // секунд на один совет
+	tips: [
+		"Клавиша C открывает действия с собой: противогаз, фонарь, жесты. Удерживайте E на игроке, чтобы открыть действия с ним.",
+		"Незнакомцев вы знаете только в лицо.",
+		"Смертельное ранение убивает не сразу. Медик или товарищ успеют вас вытащить.",
+		"Деньги в метро это патроны. Ими платят торговцу и в казну станции.",
+		"Еда и вода кончаются. Голод и жажда видны на приборах внизу экрана.",
+		"Оружие изнашивается. Оружейник на станции починит его и поставит модули.",
+		"КПК хранит почту и доску объявлений вашей станции.",
+		"Esc открывает меню сервера: персонажи, сводка, настройки."
+	],
+
+	loreInterval: 12,
+	lore: [
+		"Двадцать лет под землёй. Наверху всё ещё зима, и никто не знает, кончится ли она.",
+		"Станции живут при свете ламп. Туннели между ними никому не принадлежат.",
+		"Каждый патрон здесь чего-то стоит. Особенно тот, что остался в магазине."
+	],
+
+	snow: true                 // падающий снег поверх фона
+};
+/* ========================================================= */
+
+(function () {
+	function $(id) { return document.getElementById(id); }
+	function each(list, fn) { for (var i = 0; i < list.length; i++) fn(list[i], i); }
+
+	/* ---- масштаб холста 1920×1080 под окно ---- */
+	var stage = $("stage");
+	function fit() {
+		var s = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+		stage.style.webkitTransform = "scale(" + s + ")";
+		stage.style.transform = "scale(" + s + ")";
+	}
+	window.onresize = function () { fit(); sizeSnow(); };
+	fit();
+
+	/* ---- тексты из настроек ---- */
+	$("kick").textContent = CONFIG.kicker;
+	$("title").textContent = CONFIG.title;
+
+	function rotate(el, list, sec, fadeMs, onShow) {
+		var i = Math.floor(Math.random() * list.length);
+		function show() { el.textContent = list[i]; if (onShow) onShow(i); }
+		show();
+		if (list.length < 2) return;
+		setInterval(function () {
+			el.style.opacity = 0;
+			setTimeout(function () { i = (i + 1) % list.length; show(); el.style.opacity = 1; }, fadeMs);
+		}, sec * 1000);
+	}
+	rotate($("tipText"), CONFIG.tips, CONFIG.tipInterval, 500, function (i) { $("tipNum").textContent = (i + 1) + " из " + CONFIG.tips.length; });
+	rotate($("lore"), CONFIG.lore, CONFIG.loreInterval, 800);
+
+	/* ---- этапы и прогресс ---- */
+	var STAGES = [
+		{ re: /Retrieving|Sending client|Connecting/i, from: 0, to: 5 },
+		{ re: /Workshop|Mounting/i, from: 5, to: 25 },
+		{ re: /Download|Requesting/i, from: 25, to: 70, files: true },
+		{ re: /Lua/i, from: 70, to: 85 },
+		{ re: /Parsing|Loading|Precach|Starting|Client info sent/i, from: 85, to: 100 }
+	];
+	var STATUS_RU = [
+		[/Retrieving server info/i, "Получаем сведения о сервере"],
+		[/Sending client info/i, "Отправляем данные клиента"],
+		[/Workshop|Mounting/i, "Подключаем контент Workshop"],
+		[/Download|Requesting/i, "Загружаем файлы сервера"],
+		[/Lua/i, "Загружаем скрипты"],
+		[/Parsing|Loading/i, "Загружаем карту"],
+		[/Precach/i, "Готовим ресурсы"],
+		[/Starting/i, "Заходим в метро"]
+	];
+	var S = { stage: 0, pct: 0, total: 0, needed: 0 };
+	var rows = $("steps").getElementsByTagName("div");
+
+	function paintSteps() {
+		each(rows, function (r, i) {
+			var st = r.getElementsByTagName("i")[0];
+			if (i < S.stage) { r.className = "step done"; st.textContent = "готово"; }
+			else if (i === S.stage) {
+				r.className = "step cur";
+				st.textContent = (STAGES[i].files && S.total) ? (S.total - S.needed) + " из " + S.total : "идёт";
+			} else { r.className = "step"; st.textContent = "ожидание"; }
+		});
+	}
+	function setStage(i) { if (i > S.stage) { S.stage = i; paintSteps(); } }
+	function paintPct() { $("pct").textContent = Math.floor(S.pct); $("fill").style.width = S.pct + "%"; }
+
+	/* без точных данных полоса ползёт к концу этапа, не доходя до него */
+	setInterval(function () {
+		var st = STAGES[S.stage], target;
+		if (st.files && S.total > 0) target = st.from + (st.to - st.from) * Math.min(1, Math.max(0, S.total - S.needed) / S.total);
+		else target = S.pct + (st.to - 1 - S.pct) * 0.035;
+		if (target < st.from) target = st.from;
+		if (target > S.pct) { S.pct = target; paintPct(); }
+	}, 120);
+	paintSteps();
+
+	/* ---- функции, которые вызывает Garry's Mod ---- */
+	window.GameDetails = function (servername, serverurl, mapname, maxplayers, steamid, gamemode) {
+		if (CONFIG.useServerName && servername) $("title").textContent = servername;
+	};
+	window.SetFilesTotal = function (total) { S.total = total; S.needed = total; setStage(2); paintSteps(); };
+	window.SetFilesNeeded = function (needed) { S.needed = needed; paintSteps(); };
+	window.DownloadingFile = function (name) { $("file").textContent = "Загрузка: " + name; };
+	window.SetStatusChanged = function (status) {
+		for (var i = 0; i < STAGES.length; i++) { if (STAGES[i].re.test(status)) { setStage(i); break; } }
+		var t = status;
+		for (var j = 0; j < STATUS_RU.length; j++) { if (STATUS_RU[j][0].test(status)) { t = STATUS_RU[j][1]; break; } }
+		$("status").textContent = t;
+	};
+
+	/* ---- снег ---- */
+	var cv = $("snow"), ctx = cv.getContext && cv.getContext("2d"), P = [];
+	var raf = window.requestAnimationFrame || window.webkitRequestAnimationFrame || function (f) { return setTimeout(f, 33); };
+	function sizeSnow() { cv.width = window.innerWidth; cv.height = window.innerHeight; }
+	if (CONFIG.snow && ctx) {
+		sizeSnow();
+		for (var i = 0; i < 380; i++) P.push({ x: Math.random(), y: Math.random(), r: Math.random() * 1.9 + .5, s: Math.random() * 1.6 + .7, a: Math.random() * .45 + .25, t: Math.random() * 6.28 });
+		(function draw() {
+			var w = cv.width, h = cv.height, k = h / 1080;
+			ctx.clearRect(0, 0, w, h);
+			ctx.fillStyle = "#f2f0ea";
+			for (var i = 0; i < P.length; i++) {
+				var p = P[i];
+				p.y += p.s * k / h; p.x += (.9 + Math.sin(p.t) * .5) * k / w; p.t += .03;
+				if (p.y > 1 || p.x > 1.01) { p.y = -0.005; p.x = Math.random() * 1.15 - .15; }
+				ctx.globalAlpha = p.a * (.75 + .25 * Math.sin(p.t));
+				ctx.beginPath(); ctx.arc(p.x * w, p.y * h, p.r * k, 0, 6.283); ctx.fill();
+			}
+			ctx.globalAlpha = 1;
+			raf(draw);
+		})();
+	}
+
+	if (location.search.indexOf("demo") >= 0) {
+		var T = 0;
+		function at(ms, fn) { setTimeout(fn, ms); }
+		var FILES = ["materials/metro/icons/hud_armor.png", "sound/metro/ambient/tunnel_03.wav", "models/metro/pda/v_metro_pda.mdl", "resource/fonts/Exo2-SemiBold.ttf"];
+		at(400, function () { SetStatusChanged("Retrieving server info"); });
+		at(1400, function () { GameDetails("Metro Online", "", "rp_metro2033_oc_v_4_3", 64, "", "darkrp"); });
+		at(2600, function () { SetStatusChanged("Sending client info"); });
+		at(3800, function () { SetStatusChanged("Mounting Workshop addons"); DownloadingFile("Metro 2033 · оружие TFA"); });
+		at(8800, function () { SetStatusChanged("Downloading files"); SetFilesTotal(480); });
+		for (var left = 480, t = 9000; left > 0; t += 95) {
+			left = Math.max(0, left - 7);
+			(function (l, tt) { at(tt, function () { SetFilesNeeded(l); DownloadingFile(FILES[l % FILES.length]); }); })(left, t);
+		}
+		at(t + 300, function () { SetStatusChanged("Loading Lua files"); });
+		at(t + 3200, function () { SetStatusChanged("Parsing game info"); });
+		at(t + 4800, function () { SetStatusChanged("Precaching models"); });
+		at(t + 6600, function () { SetStatusChanged("Starting Lua"); });
+	}
+})();
+</script>
+</body>
+</html>
