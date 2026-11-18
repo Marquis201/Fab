@@ -4,6 +4,13 @@
 <meta charset="utf-8">
 <title>Metro Online · загрузка</title>
 <link href="https://fonts.googleapis.com/css2?family=Exo+2:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+<!--
+	Загрузочный экран Metro Online (вариант А «Туннель»).
+	Страница для sv_loadingurl. Пишется без CSS-переменных, flex и grid:
+	основная ветка GMod показывает её старым браузером (Awesomium).
+	Холст 1920×1080 масштабируется под любое окно, фон растягивается отдельно.
+	Демо-прогон в обычном браузере: index.html?demo
+-->
 <style>
 	* { margin: 0; padding: 0; -webkit-box-sizing: border-box; box-sizing: border-box; }
 	html, body { width: 100%; height: 100%; overflow: hidden; background: #0b0a08; color: #e0d6c2; font-family: "Exo 2", "Segoe UI", Tahoma, sans-serif; }
@@ -58,7 +65,7 @@
 
 <div id="stage">
 	<div class="title">
-		<div class="kick" id="kick">METRO ONLINE</div>
+		<div class="kick" id="kick">METRO ONLINE · РОЛЕВОЙ СЕРВЕР</div>
 		<h1 id="title">МЕТРО 2033</h1>
 	</div>
 	<div id="lore"></div>
@@ -87,14 +94,14 @@
 <script>
 /* ======================= НАСТРОЙКИ ======================= */
 var CONFIG = {
-	kicker: "METRO ONLINE",
+	kicker: "METRO ONLINE · РОЛЕВОЙ СЕРВЕР",
 	title: "МЕТРО 2033",
 	useServerName: false,      // true: заголовок = название сервера из игры (hostname)
 
 	tipInterval: 8,            // секунд на один совет
 	tips: [
 		"Клавиша C открывает действия с собой: противогаз, фонарь, жесты. Удерживайте E на игроке, чтобы открыть действия с ним.",
-		"Незнакомцев вы знаете только в лицо.",
+		"Незнакомцев вы знаете только в лицо. Представьтесь сами: /intro.",
 		"Смертельное ранение убивает не сразу. Медик или товарищ успеют вас вытащить.",
 		"Деньги в метро это патроны. Ими платят торговцу и в казну станции.",
 		"Еда и вода кончаются. Голод и жажда видны на приборах внизу экрана.",
@@ -110,7 +117,11 @@ var CONFIG = {
 		"Каждый патрон здесь чего-то стоит. Особенно тот, что остался в магазине."
 	],
 
-	snow: true                 // падающий снег поверх фона
+	snow: true,                // падающий снег поверх фона
+
+	music: "menu.ogg",         // музыка на фоне загрузки (рядом со страницей); "" — без музыки
+	musicMp3: "menu.mp3",      // запасной формат для старого браузера GMod
+	musicVolume: 0.4           // 0…1
 };
 /* ========================================================= */
 
@@ -226,6 +237,34 @@ var CONFIG = {
 		})();
 	}
 
+	/* ---- музыка: плавно входит; если браузер не дал играть сам, начнёт с первого клика ---- */
+	if (CONFIG.music) {
+		var au = document.createElement("audio");
+		var ogg = au.canPlayType && au.canPlayType("audio/ogg; codecs=vorbis");
+		au.src = ogg ? CONFIG.music : (CONFIG.musicMp3 || CONFIG.music);
+		au.loop = true;
+		au.volume = 0;
+		document.body.appendChild(au);
+		var vol = 0, fading = null;
+		function fadeIn() {
+			if (fading) return;
+			fading = setInterval(function () {
+				vol = Math.min(CONFIG.musicVolume, vol + CONFIG.musicVolume / 40);
+				au.volume = vol;
+				if (vol >= CONFIG.musicVolume) { clearInterval(fading); }
+			}, 50);
+		}
+		function start() {
+			var p = au.play();
+			if (p && p.then) p.then(fadeIn, function () {}); else fadeIn();
+		}
+		start();
+		var kick = function () { if (au.paused) start(); };
+		document.addEventListener("mousedown", kick, false);
+		document.addEventListener("keydown", kick, false);
+	}
+
+	/* ---- демо-прогон в обычном браузере: index.html?demo ---- */
 	if (location.search.indexOf("demo") >= 0) {
 		var T = 0;
 		function at(ms, fn) { setTimeout(fn, ms); }
